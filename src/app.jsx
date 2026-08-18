@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, SafeAreaView, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from './src/components/Header';
-import Home from './src/pages/Home';
-import Favorites from './src/pages/Favorites';
-import { obtenerPokemones } from './src/services/api';
+import Header from './components/Header';
+import Home from './pages/Home';
+import Favorites from './pages/Favorites';
+import { obtenerPokemones } from './services/api';
 
 export default function App() {
   const [vistaActual, setVistaActual] = useState('home');
