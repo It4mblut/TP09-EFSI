@@ -1,21 +1,47 @@
-import ItemList from "../components/ItemList";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import ItemList from '../components/ItemList';
 
-function Favorites({ favoritos, quitarFavorito }) {
+export default function Favorites({ favoritos, agregarFavorito, quitarFavorito }) {
   return (
-    <main className="app-wrapper">
-      <h2 className="page-title">Mis Favoritos</h2>
+    <View style={styles.container}>
+      <Text style={styles.pageTitle}>Mis Favoritos</Text>
+      
       {favoritos.length === 0 ? (
-        <p className="empty-message">Todavía no tenés Pokémon favoritos.</p>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyMessage}>No hay elementos favoritos.</Text>
+        </View>
       ) : (
         <ItemList
           pokemones={favoritos}
           favoritos={favoritos}
-          agregarFavorito={() => {}}
+          agregarFavorito={agregarFavorito}
           quitarFavorito={quitarFavorito}
         />
       )}
-    </main>
+    </View>
   );
 }
 
-export default Favorites;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingTop: 15,
+  },
+  pageTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2b2d42',
+    marginBottom: 15,
+  },
+  emptyContainer: {
+    marginTop: 40,
+    alignItems: 'center',
+  },
+  emptyMessage: {
+    fontSize: 16,
+    color: '#8d99ae',
+    textAlign: 'center',
+  },
+});

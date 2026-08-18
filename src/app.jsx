@@ -1,86 +1,108 @@
-import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home";
-import Favorites from "./pages/Favorites";
-import { obtenerPokemones } from "./services/api";
-import "./estilo.css";
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, SafeAreaView, StatusBar } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from './src/components/Header';
+import Home from './src/pages/Home';
+import Favorites from './src/pages/Favorites';
+import { obtenerPokemones } from './src/services/api';
 
-function App() {
+export default function App() {
+  const [vistaActual, setVistaActual] = useState('home');
   const [pokemones, setPokemones] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [favoritos, setFavoritos] = useState(() => {
-    const guardados = localStorage.getItem("favoritos");
-    return guardados ? JSON.parse(guardados) : [];
-  });
+  const [favoritos, setFavoritos] = useState([]);
 
   useEffect(() => {
-    const cargarDatos = async () => {
+    const cargarDatosIniciales = async () => {
       try {
         setLoading(true);
         const datos = await obtenerPokemones();
         setPokemones(datos);
       } catch (err) {
-        setError("Error al cargar los Pokémon");
+        setError('No fue posible obtener la información.');
       } finally {
         setLoading(false);
       }
     };
-    cargarDatos();
+
+    cargarDatosIniciales();
+    cargarFavoritosStorage();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("favoritos", JSON.stringify(favoritos));
-  }, [favoritos]);
+  const cargarFavoritosStorage = async () => {
+    try {
+      const guardados = await AsyncStorage.getItem('favoritos');
+      if (guardados) {
+        setFavoritos(JSON.parse(guardados));
+      }
+    } catch (e) {
+      console.error('Error al cargar favoritos de AsyncStorage', e);
+    }
+  };
+
+  const guardarFavoritosStorage = async (nuevosFavoritos) => {
+    try {
+      await AsyncStorage.setItem('favoritos', JSON.stringify(nuevosFavoritos));
+    } catch (e) {
+      console.error('Error al guardar favoritos en AsyncStorage', e);
+    }
+  };
 
   const agregarFavorito = (pokemon) => {
-    if (!favoritos.some((f) => f.id === pokemon.id)) {
-      setFavoritos([...favoritos, pokemon]);
+    if (!favoritos.some((fav) => fav.id === pokemon.id)) {
+      const nuevos = [...favoritos, pokemon];
+      setFavoritos(nuevos);
+      guardarFavoritosStorage(nuevos);
     }
   };
 
   const quitarFavorito = (id) => {
-    setFavoritos(favoritos.filter((f) => f.id !== id));
+    const nuevos = favoritos.filter((fav) => fav.id !== id);
+    setFavoritos(nuevos);
+    guardarFavoritosStorage(nuevos);
   };
 
   return (
-    <BrowserRouter>
-      <header className="header">
-        <h1>Pokédex TP09</h1>
-        <nav>
-          <Link to="/">Inicio</Link> | <Link to="/favoritos">Favoritos</Link>
-        </nav>
-      </header>
-
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <Home
-              pokemones={pokemones}
-              busqueda={busqueda}
-              setBusqueda={setBusqueda}
-              loading={loading}
-              error={error}
-              favoritos={favoritos}
-              agregarFavorito={agregarFavorito}
-              quitarFavorito={quitarFavorito}
-            />
-          }
-        />
-        <Route
-          path="/favoritos"
-          element={
-            <Favorites
-              favoritos={favoritos}
-              quitarFavorito={quitarFavorito}
-            />
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="#e63946" barStyle="light-content" />
+      <Header
+        vistaActual={vistaActual}
+        setVistaActual={setVistaActual}
+        cantidadFavoritos={favoritos.length}
+      />
+      <View style={styles.appWrapper}>
+        {vistaActual === 'home' ? (
+          <Home
+            pokemones={pokemones}
+            busqueda={busqueda}
+            setBusqueda={setBusqueda}
+            loading={loading}
+            error={error}
+            favoritos={favoritos}
+            agregarFavorito={agregarFavorito}
+            quitarFavorito={quitarFavorito}
+          />
+        ) : (
+          <Favorites
+            favoritos={favoritos}
+            agregarFavorito={agregarFavorito}
+            quitarFavorito={quitarFavorito}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
-export default App;
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f4f6f9',
+  },
+  appWrapper: {
+    flex: 1,
+    backgroundColor: '#f4f6f9',
+  },
+});

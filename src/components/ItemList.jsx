@@ -1,22 +1,47 @@
-import ItemCard from "./ItemCard";
+import React from 'react';
+import { FlatList, View, Text, StyleSheet } from 'react-native';
+import ItemCard from './ItemCard';
 
-function ItemList({ pokemones, favoritos, agregarFavorito, quitarFavorito }) {
+export default function ItemList({ pokemones, favoritos, agregarFavorito, quitarFavorito }) {
+  if (pokemones.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyMessage}>No encontramos resultados.</Text>
+      </View>
+    );
+  }
+
   return (
-    <section className="pokemon-list">
-      {pokemones.map((pokemon) => {
-        const esFavorito = favoritos.some((fav) => fav.id === pokemon.id);
+    <FlatList
+      data={pokemones}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => {
+        const esFavorito = favoritos.some((fav) => fav.id === item.id);
         return (
           <ItemCard
-            key={pokemon.id}
-            pokemon={pokemon}
+            pokemon={item}
             esFavorito={esFavorito}
             agregarFavorito={agregarFavorito}
             quitarFavorito={quitarFavorito}
           />
         );
-      })}
-    </section>
+      }}
+      contentContainerStyle={styles.listContainer}
+      showsVerticalScrollIndicator={false}
+    />
   );
 }
 
-export default ItemList;
+const styles = StyleSheet.create({
+  listContainer: {
+    paddingBottom: 20,
+  },
+  emptyContainer: {
+    marginTop: 40,
+    alignItems: 'center',
+  },
+  emptyMessage: {
+    fontSize: 18,
+    color: '#8d99ae',
+  },
+});
